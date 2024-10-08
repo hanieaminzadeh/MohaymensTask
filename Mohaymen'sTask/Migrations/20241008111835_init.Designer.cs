@@ -11,7 +11,7 @@ using Mohaymen_sTask.DataAccess;
 namespace Mohaymen_sTask.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241001134523_init")]
+    [Migration("20241008111835_init")]
     partial class init
     {
         /// <inheritdoc />

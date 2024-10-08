@@ -33,7 +33,7 @@ public class UserService : IUserService
     {
         var result = await _userRepository.Search(userName, cancellationToken);
 
-        if (result.Any()) 
+        if (result.Any())
             return result;
         else
         {
@@ -55,5 +55,38 @@ public class UserService : IUserService
         await _userRepository.SetNotAvailable(userName, cancellationToken);
         ColoredConsole.WriteLine($"User with username '{userName}' set not available ".Red());
         Console.ReadKey();
+    }
+
+    public async Task<bool> DeleteUser(string userName, string Password, CancellationToken cancellationToken)
+    {
+        var user = await _userRepository.DeleteUser(userName, Password, cancellationToken);
+
+        if (user)
+        {
+            ColoredConsole.WriteLine($"{userName} is deleted".Green());
+            Console.ReadKey();
+            return true;
+        }
+        else
+        {
+            ColoredConsole.WriteLine($"There is No '{userName}' user !".Red());
+            Console.ReadKey();
+            return false;
+        }
+    }
+
+    public async Task UpdateUserName(string oldUserName, string newUserName, string password, CancellationToken cancellationToken)
+    {
+        if (await _userRepository.UserNameIsValid(oldUserName, password, cancellationToken))
+        {
+            await _userRepository.Update(oldUserName, newUserName, cancellationToken);
+            ColoredConsole.WriteLine("Your user name has been updated".Green());
+            Console.ReadKey();
+        }
+        else
+        {
+            ColoredConsole.WriteLine("The username entered is not invalid".Red());
+            Console.ReadKey();
+        }
     }
 }

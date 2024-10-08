@@ -9,5 +9,7 @@ public enum Command
     Search,
     Logout,
     Invalid,
+    Delete,
+    Update,
     Help
 }

@@ -43,8 +43,8 @@ var userService = app.Services.GetRequiredService<IUserService>();
 #endregion
 
 
-User OnlineUser = null;
-
+User OnlineUser = new User();
+bool UserIsLogin = false;
 while (true)
 {
     Console.Clear();
@@ -80,10 +80,19 @@ while (true)
 
         case Command.Login:
             {
-                var username = parameters["USERNAME"];
-                var password = parameters["PASSWORD"];
+                if (UserIsLogin == false)
+                {
+                    var username = parameters["USERNAME"];
+                    var password = parameters["PASSWORD"];
 
-                OnlineUser = await authenticationService.Login(username, password, default);
+                    OnlineUser = await authenticationService.Login(username, password, default);
+                    UserIsLogin = true;
+                }
+                else if(UserIsLogin == true)
+                {
+                    ColoredConsole.WriteLine("You can not login with another username, logout first ! ".Red());
+                    Console.ReadKey();
+                }
                 break;
             }
 
@@ -163,22 +172,75 @@ while (true)
                 break;
             }
 
+        case Command.Delete:
+            {
+                if (OnlineUser is null)
+                {
+                    ColoredConsole.WriteLine("To perform this operation, login first !".Red());
+                    Console.ReadKey();
+                }
+                else
+                {
+                    var username = parameters["USERNAME"];
+                    var password = parameters["PASSWORD"];
+                    if (OnlineUser.UserName == username)
+                    {
+                        await userService.DeleteUser(username, password, default);
+                        ColoredConsole.WriteLine($"{username}, You have been successfully deleted".Green());
+                        Console.ReadKey();
+                    }
+                    else
+                    {
+                        ColoredConsole.WriteLine("You can not delete another user !".Red());
+                        Console.ReadKey();
+                    }
+                }
+                break;
+            }
+
+        case Command.Update:
+            {
+                if (OnlineUser is null)
+                {
+                    ColoredConsole.WriteLine("To perform this operation, login first !".Red());
+                    Console.ReadKey();
+                }
+                else
+                {
+                    var oldUserName = parameters["OLD"];
+                    var newUserName = parameters["NEW"];
+
+                    if (OnlineUser.UserName == oldUserName)
+                    {
+                        await userService.UpdateUserName(oldUserName, newUserName, OnlineUser.Password, default);
+                    }
+                    else
+                    {
+                        ColoredConsole.WriteLine("You can not update another user !".Red());
+                        Console.ReadKey();
+                    }
+                }
+                break;
+            }
+
         case Command.Help:
             {
                 Console.Clear();
-                ColoredConsole.WriteLine("Register --username [username]--password [password]".DarkGray());
-                ColoredConsole.WriteLine("Login --username [username]--password[password]".DarkGray());
+                ColoredConsole.WriteLine("Register --username [username] --password [password]".DarkGray());
+                ColoredConsole.WriteLine("Login --username [username] --password[password]".DarkGray());
                 ColoredConsole.WriteLine("Change --status [available]".DarkGray());
                 ColoredConsole.WriteLine("Change --status [not available]".DarkGray());
                 ColoredConsole.WriteLine("Search --username [username]".DarkGray());
-                ColoredConsole.WriteLine("ChangePassword --old[myOldPassword]--new[myNewPassword]".DarkGray());
+                ColoredConsole.WriteLine("ChangePassword --old[myOldPassword] --new[myNewPassword]".DarkGray());
+                ColoredConsole.WriteLine("Update --old[myOldUsername] --new[myNewUsername]".DarkGray());
+                ColoredConsole.WriteLine("Delete --username [username] --password [password]".DarkGray());
                 Console.ReadKey();
                 break;
             }
 
         case Command.Logout:
             {
-                OnlineUser = null;
+                UserIsLogin = false;
                 ColoredConsole.WriteLine("You are logged out of the system !".Red());
                 Console.ReadKey();
                 break;
@@ -195,8 +257,6 @@ while (true)
             break;
     }
 }
-
-
 
 Dictionary<string, string> GetParameters(string input)
 {
@@ -252,6 +312,14 @@ Command GetCommand(string input)
 
         case "LOGOUT":
             return Command.Logout;
+            break;
+
+        case "DELETE":
+            return Command.Delete;
+            break;
+
+        case "UPDATE":
+            return Command.Update;
             break;
 
         default:

@@ -34,8 +34,8 @@ public class UserRepository : IUserRepository
     public async Task<List<UserSearchDto>> Search(string userName, CancellationToken cancellationToken)
     {
         var users = await _appDbContext.Users
-            .Where(x=>x.UserName.StartsWith(userName))
-            .Select(x=> new UserSearchDto()
+            .Where(x => x.UserName.StartsWith(userName))
+            .Select(x => new UserSearchDto()
             {
                 Id = x.Id,
                 UserName = x.UserName,
@@ -48,10 +48,10 @@ public class UserRepository : IUserRepository
     public async Task SetAvailable(string userName, CancellationToken cancellationToken)
     {
         var user = await _appDbContext.Users.FirstOrDefaultAsync(x => x.UserName == userName, cancellationToken);
-        
+
         if (user is not null)
         {
-            user.IsAvailable  = true;
+            user.IsAvailable = true;
             await _appDbContext.SaveChangesAsync(cancellationToken);
         }
     }
@@ -59,13 +59,42 @@ public class UserRepository : IUserRepository
     public async Task SetNotAvailable(string userName, CancellationToken cancellationToken)
     {
         var user = await _appDbContext.Users.FirstOrDefaultAsync(x => x.UserName == userName, cancellationToken);
-        
+
         if (user is not null)
         {
             user.IsAvailable = false;
             await _appDbContext.SaveChangesAsync(cancellationToken);
         }
     }
-}
 
+    public async Task<bool> DeleteUser(string userName, string Password, CancellationToken cancellationToken)
+    {
+        var user = await _appDbContext.Users.FirstOrDefaultAsync(x => x.UserName == userName && x.Password == Password, cancellationToken);
+
+        if (user is not null)
+        {
+            _appDbContext.Users.Remove(user);
+            await _appDbContext.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+        return false;
+    }
+
+    public async Task Update(string oldUserName, string newUserName, CancellationToken cancellationToken)
+    {
+        var user = await _appDbContext.Users.FirstOrDefaultAsync(x => x.UserName == oldUserName, cancellationToken);
+
+        if (user is not null)
+        {
+            user.UserName = newUserName;
+            await _appDbContext.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    public async Task<bool> UserNameIsValid(string oldUserName, string password, CancellationToken cancellationToken)
+    {
+        return await _appDbContext.Users
+            .AnyAsync(x => x.UserName == oldUserName && x.Password == password, cancellationToken);
+    }
+}
 

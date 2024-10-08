@@ -9,4 +9,7 @@ public interface IUserRepository
     Task<List<UserSearchDto>> Search(string userName, CancellationToken cancellationToken);
     Task SetAvailable(string userName , CancellationToken cancellationToken);
     Task SetNotAvailable(string userName , CancellationToken cancellationToken);
+    Task<bool> DeleteUser(string userName, string Password, CancellationToken cancellationToken);
+    Task Update(string userName, string password, CancellationToken cancellationToken);
+    Task<bool> UserNameIsValid(string oldUserName, string password, CancellationToken cancellationToken);
 }
